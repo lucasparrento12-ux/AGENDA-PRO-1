@@ -27,7 +27,6 @@ export default function PaginaAgenda() {
       {mensagem && (
         <div className="mb-4 p-3 bg-blue-100 border border-blue-300 text-blue-800 rounded">{mensagem}</div>
       )}
-
       <section className="mb-10">
         <h2 className="text-2xl font-semibold mb-4 text-gray-700">Agenda</h2>
         <div className={`bg-white p-4 rounded-lg shadow mb-4 grid grid-cols-2 lg:grid-cols-6 gap-3 items-end ${editarAgendaId ? 'border-green-500 border' : ''}`}>
@@ -59,7 +58,6 @@ export default function PaginaAgenda() {
           </button>
         </div>
         <input className="border p-2 mb-4 w-full rounded-md" placeholder="Filtrar agendamentos por nome do cliente..." value={filtroCliente} onChange={e => setFiltroCliente(e.target.value)} aria-label="Filtrar agendamentos" />
-        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {agendaFiltrada.map(a => {
             const cliente = clientes.find(c => c.id === a.clienteId);
@@ -73,21 +71,12 @@ export default function PaginaAgenda() {
                       <a href={`https://wa.me/55${cliente.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" aria-label="Conversar no WhatsApp" className="text-green-500 hover:text-green-700"><FaWhatsapp size={18} /></a>
                     )}
                   </div>
-                  
                   <div className="text-sm text-gray-600 font-semibold">
                     {new Date(a.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
                     {a.horario && ` às ${a.horario}`}
                   </div>
-
                   <div className="text-gray-700">{a.servico}</div>
                   <div className="font-semibold text-green-600 mt-2">R$ {a.preco}</div>
-
-                  {/* ===== CÓDIGO DE DEBUG ADICIONADO ===== */}
-                  <pre className="text-xs bg-gray-200 p-1 mt-2 rounded overflow-auto">
-                    {JSON.stringify(a, null, 2)}
-                  </pre>
-                  {/* ===== FIM DO CÓDIGO DE DEBUG ===== */}
-
                 </div>
                 <div className="flex flex-col gap-2">
                   <button onClick={() => editarAgenda(a)} className="text-blue-500 hover:text-blue-700 p-1" aria-label="Editar agendamento"><FiEdit size={18} /></button>
@@ -98,7 +87,6 @@ export default function PaginaAgenda() {
           })}
         </div>
       </section>
-
       <section>
         <h2 className="text-2xl font-semibold mb-4 text-gray-700">Resumo Financeiro</h2>
         <div className="bg-white p-6 rounded-lg shadow text-2xl font-bold text-blue-600">
