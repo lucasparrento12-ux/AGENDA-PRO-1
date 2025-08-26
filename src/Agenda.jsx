@@ -26,13 +26,12 @@ export default function Agenda() {
     const nomeTrim = clienteNome.trim();
     const whatsappTrim = clienteWhatsapp.trim();
     if (!nomeTrim) return showMsg('Preencha o nome do cliente');
-    if (clientes.some(c => c.nome.toLowerCase() === nomeTrim.toLowerCase() && c.id !== editarClienteId)) {
-      return showMsg('Já existe um cliente com esse nome');
-    }
+    if (clientes.some(c => c.nome.toLowerCase() === nomeTrim.toLowerCase() && c.id !== editarClienteId)) return showMsg('Cliente já existe');
+    
     if (editarClienteId) {
       setClientes(clientes.map(c => c.id === editarClienteId ? { ...c, nome: nomeTrim, whatsapp: whatsappTrim } : c));
       setEditarClienteId(null);
-      showMsg('Cliente editado com sucesso!');
+      showMsg('Cliente editado!');
     } else {
       setClientes([...clientes, { id: Date.now(), nome: nomeTrim, whatsapp: whatsappTrim }]);
       showMsg('Cliente adicionado!');
@@ -42,7 +41,7 @@ export default function Agenda() {
   };
 
   const removerCliente = (id) => {
-    if (window.confirm('Deseja remover este cliente? Seus agendamentos também serão removidos.')) {
+    if (window.confirm('Deseja remover este cliente e seus agendamentos?')) {
       setClientes(clientes.filter(c => c.id !== id));
       setAgenda(agenda.filter(a => a.clienteId !== id));
       showMsg('Cliente removido!');
@@ -62,8 +61,8 @@ export default function Agenda() {
 
   const adicionarOuEditarAgenda = () => {
     const { data, horario, servico, preco, clienteId } = formAgenda;
-    if (!data || !horario || !servico.trim() || !preco || !clienteId) return showMsg('Preencha todos os campos, incluindo data e horário.');
-    
+    if (!data || !horario || !servico.trim() || !preco || !clienteId) return showMsg('Preencha todos os campos do agendamento');
+
     if (editarAgendaId) {
       setAgenda(agenda.map(a => a.id === editarAgendaId ? { ...a, data, horario, servico: servico.trim(), preco: parseFloat(preco).toFixed(2), clienteId: Number(clienteId) } : a));
       setEditarAgendaId(null);
@@ -85,7 +84,6 @@ export default function Agenda() {
       clienteId: agendamento.clienteId
     });
     setEditarAgendaId(agendamento.id);
-    window.scrollTo(0, 0);
   };
 
   const removerAgenda = (id) => {
@@ -99,9 +97,9 @@ export default function Agenda() {
   const clientesOrdenados = [...clientes].sort((a, b) => a.nome.localeCompare(b.nome));
   const agendaFiltrada = agenda
     .filter(a => {
-        if (!filtroCliente) return true;
-        const cliente = clientes.find(c => c.id === a.clienteId);
-        return cliente ? cliente.nome.toLowerCase().includes(filtroCliente.toLowerCase()) : false;
+      if (!filtroCliente) return true;
+      const cliente = clientes.find(c => c.id === a.clienteId);
+      return cliente ? cliente.nome.toLowerCase().includes(filtroCliente.toLowerCase()) : false;
     })
     .sort((a, b) => `${a.data} ${a.horario || ''}`.localeCompare(`${b.data} ${b.horario || ''}`));
   
@@ -109,81 +107,70 @@ export default function Agenda() {
 
   return (
     <div className="min-h-screen md:flex bg-gray-100 font-sans">
-      <aside className="w-full md:w-64 bg-white shadow-md p-6">
-        <h1 className="text-2xl font-bold mb-8 text-gray-800">Agenda Pro</h1>
-        <nav>
-          <ul>
-            <li className="flex items-center mb-4 text-gray-700 font-semibold"><FiUser className="mr-3" /> Clientes</li>
-            <li className="flex items-center mb-4 text-gray-700 font-semibold"><FiCalendar className="mr-3" /> Agenda</li>
-            <li className="flex items-center text-gray-700 font-semibold"><FiDollarSign className="mr-3" /> Financeiro</li>
-          </ul>
-        </nav>
-      </aside>
-      
-      <main className="flex-1 p-4 md:p-8">
-        {mensagem && <div className="mb-4 p-3 bg-blue-100 border border-blue-300 text-blue-800 rounded">{mensagem}</div>}
-        
-        <section className="mb-10">
-          <h2 className="text-2xl font-semibold mb-4 text-gray-700">Clientes</h2>
-          <div className="flex flex-col md:flex-row mb-4 gap-2">
-            <input className={`border p-2 flex-1 rounded-md ${editarClienteId ? 'border-green-500' : ''}`} placeholder="Nome do cliente" value={clienteNome} onChange={e => setClienteNome(e.target.value)} />
-            <input type="tel" className={`border p-2 flex-1 rounded-md ${editarClienteId ? 'border-green-500' : ''}`} placeholder="WhatsApp (Ex: 11987654321)" value={clienteWhatsapp} onChange={e => setClienteWhatsapp(e.target.value)} />
-            <button className={`px-6 py-2 rounded-md font-semibold transition-colors ${editarClienteId ? 'bg-green-500 hover:bg-green-600 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white'}`} onClick={adicionarOuEditarCliente}>
-              {editarClienteId ? 'Salvar' : 'Adicionar'}
+      <aside className="w-full md:w-72 bg-white shadow-md p-6">
+        <h1 className="text-3xl font-bold mb-8 text-gray-800">Agenda Pro</h1>
+        <section>
+          <h2 className="text-xl font-semibold mb-4 text-gray-700 flex items-center"><FiUser className="mr-3" /> Clientes</h2>
+          <div className="flex flex-col mb-4 gap-2">
+            <input className={`border p-2 rounded-md ${editarClienteId ? 'border-green-500' : ''}`} placeholder="Nome do cliente" value={clienteNome} onChange={e => setClienteNome(e.target.value)} />
+            <input type="tel" className={`border p-2 rounded-md ${editarClienteId ? 'border-green-500' : ''}`} placeholder="WhatsApp (Ex: 119...)" value={clienteWhatsapp} onChange={e => setClienteWhatsapp(e.target.value)} />
+            <button className={`p-2 rounded-md font-semibold text-white transition-colors ${editarClienteId ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-500 hover:bg-blue-600'}`} onClick={adicionarOuEditarCliente}>
+              {editarClienteId ? 'Salvar Cliente' : 'Adicionar Cliente'}
             </button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="space-y-2 max-h-48 overflow-y-auto">
             {clientesOrdenados.map(c => (
-              <div key={c.id} className="bg-white p-4 rounded-lg shadow flex justify-between items-center">
+              <div key={c.id} className="bg-gray-50 p-2 rounded-lg flex justify-between items-center">
                 <div>
                   <span className="font-medium text-gray-800">{c.nome}</span>
-                  {c.whatsapp && <p className="text-sm text-gray-500">{c.whatsapp}</p>}
+                  {c.whatsapp && <p className="text-xs text-gray-500">{c.whatsapp}</p>}
                 </div>
                 <div className="flex gap-3 items-center">
-                  {c.whatsapp && <a href={`https://wa.me/55${c.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer"><FaWhatsapp size={22} className="text-green-500 hover:text-green-700" /></a>}
-                  <button onClick={() => editarCliente(c)}><FiEdit size={18} className="text-blue-500 hover:text-blue-700" /></button>
-                  <button onClick={() => removerCliente(c.id)}><FiTrash2 size={18} className="text-red-500 hover:text-red-700" /></button>
+                  {c.whatsapp && <a href={`https://wa.me/55${c.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer"><FaWhatsapp size={20} className="text-green-500 hover:text-green-700" /></a>}
+                  <button onClick={() => editarCliente(c)}><FiEdit size={16} className="text-blue-500 hover:text-blue-700" /></button>
+                  <button onClick={() => removerCliente(c.id)}><FiTrash2 size={16} className="text-red-500 hover:text-red-700" /></button>
                 </div>
               </div>
             ))}
           </div>
         </section>
-
-        <section className="mb-10">
-          <h2 className="text-2xl font-semibold mb-4 text-gray-700">Agenda</h2>
-
-          {/* ===== O FORMULÁRIO COMPLETO E CORRETO ESTÁ AQUI ===== */}
-          <div className={`bg-white p-4 rounded-lg shadow mb-4 grid grid-cols-2 lg:grid-cols-6 gap-3 items-end ${editarAgendaId ? 'border-green-500 border' : ''}`}>
-            <div className="col-span-2 lg:col-span-2">
-              <label htmlFor="clienteId" className="block text-sm font-medium text-gray-700">Cliente</label>
-              <select id="clienteId" name="clienteId" value={formAgenda.clienteId} onChange={handleAgendaChange} className="mt-1 border p-2 w-full rounded-md bg-gray-50">
-                <option value="">Selecione o Cliente</option>
+      </aside>
+      
+      <main className="flex-1 p-4 md:p-8">
+        {mensagem && <div className="mb-4 p-3 bg-blue-100 border-l-4 border-blue-500 text-blue-800 rounded">{mensagem}</div>}
+        
+        <section>
+          <h2 className="text-2xl font-semibold mb-4 text-gray-700 flex items-center"><FiCalendar className="mr-3" /> Agenda</h2>
+          <div className={`bg-white p-4 rounded-lg shadow mb-4 grid grid-cols-2 lg:grid-cols-6 gap-3 items-end ${editarAgendaId ? 'border-2 border-green-500' : ''}`}>
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-gray-700">Cliente</label>
+              <select name="clienteId" value={formAgenda.clienteId} onChange={handleAgendaChange} className="mt-1 border p-2 w-full rounded-md bg-gray-50">
+                <option value="">Selecione</option>
                 {clientesOrdenados.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
               </select>
             </div>
             <div>
-              <label htmlFor="data" className="block text-sm font-medium text-gray-700">Data</label>
-              <input id="data" type="date" name="data" className="mt-1 border p-2 w-full rounded-md bg-gray-50" value={formAgenda.data} onChange={handleAgendaChange} />
+              <label className="block text-sm font-medium text-gray-700">Data</label>
+              <input type="date" name="data" className="mt-1 border p-2 w-full rounded-md bg-gray-50" value={formAgenda.data} onChange={handleAgendaChange} />
             </div>
             <div>
-              <label htmlFor="horario" className="block text-sm font-medium text-gray-700">Hora</label>
-              <input id="horario" type="time" name="horario" className="mt-1 border p-2 w-full rounded-md bg-gray-50" value={formAgenda.horario} onChange={handleAgendaChange} />
+              <label className="block text-sm font-medium text-gray-700">Hora</label>
+              <input type="time" name="horario" className="mt-1 border p-2 w-full rounded-md bg-gray-50" value={formAgenda.horario} onChange={handleAgendaChange} />
             </div>
             <div className="col-span-2 lg:col-span-1">
-              <label htmlFor="servico" className="block text-sm font-medium text-gray-700">Serviço</label>
-              <input id="servico" name="servico" className="mt-1 border p-2 w-full rounded-md bg-gray-50" placeholder="Serviço" value={formAgenda.servico} onChange={handleAgendaChange} />
+              <label className="block text-sm font-medium text-gray-700">Serviço</label>
+              <input name="servico" className="mt-1 border p-2 w-full rounded-md bg-gray-50" value={formAgenda.servico} onChange={handleAgendaChange} />
             </div>
             <div className="col-span-2 lg:col-span-1">
-              <label htmlFor="preco" className="block text-sm font-medium text-gray-700">Preço</label>
-              <input id="preco" type="number" name="preco" className="mt-1 border p-2 w-full rounded-md bg-gray-50" placeholder="Preço" value={formAgenda.preco} onChange={handleAgendaChange} min="0" step="0.01" />
+              <label className="block text-sm font-medium text-gray-700">Preço</label>
+              <input type="number" name="preco" className="mt-1 border p-2 w-full rounded-md bg-gray-50" value={formAgenda.preco} onChange={handleAgendaChange} min="0" step="0.01" />
             </div>
-            <button className={`px-4 py-2 w-full rounded-md font-semibold transition-colors col-span-2 lg:col-span-6 ${editarAgendaId ? 'bg-green-500 hover:bg-green-600 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white'}`} onClick={adicionarOuEditarAgenda}>
+            <button className={`p-2 w-full rounded-md font-semibold text-white transition-colors col-span-2 lg:col-span-6 ${editarAgendaId ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-500 hover:bg-blue-600'}`} onClick={adicionarOuEditarAgenda}>
               {editarAgendaId ? 'Salvar Edição' : 'Agendar'}
             </button>
           </div>
-          {/* ===== FIM DO FORMULÁRIO ===== */}
           
-          <input className="border p-2 mb-4 w-full rounded-md" placeholder="Filtrar agendamentos..." value={filtroCliente} onChange={e => setFiltroCliente(e.target.value)} />
+          <input className="border p-2 mb-4 w-full rounded-md" placeholder="Filtrar agendamentos por nome do cliente..." value={filtroCliente} onChange={e => setFiltroCliente(e.target.value)} />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {agendaFiltrada.map(a => {
               const cliente = clientes.find(c => c.id === a.clienteId);
@@ -214,7 +201,7 @@ export default function Agenda() {
           </div>
         </section>
 
-        <section>
+        <section className="mt-10">
           <h2 className="text-2xl font-semibold mb-4 text-gray-700">Resumo Financeiro</h2>
           <div className="bg-white p-6 rounded-lg shadow text-2xl font-bold text-blue-600 flex items-center">
             <FiDollarSign className="mr-2" /> <span>Total a Receber: R$ {totalFinanceiro}</span>
