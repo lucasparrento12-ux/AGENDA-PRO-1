@@ -1,28 +1,22 @@
 // src/App.jsx
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import LayoutPrincipal from './MVPAgendaAutonomos.jsx';
-import PaginaAgenda from './pages/PaginaAgenda.jsx';
-import PaginaClientes from './pages/PaginaClientes.jsx';
-
-const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <LayoutPrincipal />,
-    children: [
-      {
-        index: true, // Isso torna este o componente padrão para "/"
-        element: <PaginaAgenda />,
-      },
-      {
-        path: "clientes",
-        element: <PaginaClientes />,
-      },
-    ],
-  },
-]);
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import LayoutPrincipal from "./MVPAgendaAutonomos";
+import Agenda from "./Agenda";
+import Clientes from "./Clientes"; // se você já tiver essa página separada
 
 function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<LayoutPrincipal />}>
+          {/* Rota da agenda */}
+          <Route index element={<Agenda />} />
+          {/* Rota de clientes */}
+          <Route path="clientes" element={<Clientes />} />
+        </Route>
+      </Routes>
+    </Router>
+  );
 }
 
 export default App;
