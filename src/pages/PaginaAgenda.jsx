@@ -12,6 +12,8 @@ export default function PaginaAgenda() {
   
   const totalFinanceiro = agenda.reduce((acc, a) => acc + parseFloat(a.preco), 0).toFixed(2);
   const clientesOrdenados = [...clientes].sort((a, b) => a.nome.localeCompare(b.nome));
+  
+  // CORRIGIDO: Ordenação por data e depois por horário
   const agendaFiltrada = agenda
     .filter(a => {
         if (!filtroCliente) return true;
@@ -20,7 +22,6 @@ export default function PaginaAgenda() {
     })
     .sort((a, b) => `${a.data} ${a.horario}`.localeCompare(`${b.data} ${b.horario}`));
 
-  // NOVO: Pega a data de hoje no formato AAAA-MM-DD
   const hoje = new Date().toISOString().slice(0, 10);
 
   return (
@@ -31,18 +32,33 @@ export default function PaginaAgenda() {
 
       <section className="mb-10">
         <h2 className="text-2xl font-semibold mb-4 text-gray-700">Agenda</h2>
-        <div className={`bg-white p-4 rounded-lg shadow mb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3 items-end ${editarAgendaId ? 'border-green-500 border' : ''}`}>
-          <select name="clienteId" value={formAgenda.clienteId} onChange={handleAgendaChange} className="border p-2 w-full rounded-md bg-gray-50 lg:col-span-2" aria-label="Selecionar cliente">
-            <option value="">Selecione o Cliente</option>
-            {clientesOrdenados.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
-          </select>
-          <input type="date" name="data" className="border p-2 w-full rounded-md bg-gray-50" value={formAgenda.data} onChange={handleAgendaChange} aria-label="Data do agendamento" />
-          {/* NOVO CAMPO DE HORÁRIO */}
-          <input type="time" name="horario" className="border p-2 w-full rounded-md bg-gray-50" value={formAgenda.horario} onChange={handleAgendaChange} aria-label="Horário do agendamento" />
-          <input name="servico" className="border p-2 w-full rounded-md bg-gray-50" placeholder="Serviço" value={formAgenda.servico} onChange={handleAgendaChange} aria-label="Serviço" />
-          <input type="number" name="preco" className="border p-2 w-full rounded-md bg-gray-50" placeholder="Preço" value={formAgenda.preco} onChange={handleAgendaChange} aria-label="Preço" min="0" step="0.01" />
-          <button className={`px-4 py-2 w-full rounded-md font-semibold transition-colors lg:col-span-6 ${editarAgendaId ? 'bg-green-500 hover:bg-green-600 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white'}`} onClick={adicionarOuEditarAgenda}>
-            {editarAgendaId ? 'Salvar' : 'Agendar'}
+        {/* CORRIGIDO: O layout do formulário foi ajustado para telas menores */}
+        <div className={`bg-white p-4 rounded-lg shadow mb-4 grid grid-cols-2 lg:grid-cols-6 gap-3 items-end ${editarAgendaId ? 'border-green-500 border' : ''}`}>
+          <div className="col-span-2 lg:col-span-2">
+            <label htmlFor="clienteId" className="block text-sm font-medium text-gray-700">Cliente</label>
+            <select id="clienteId" name="clienteId" value={formAgenda.clienteId} onChange={handleAgendaChange} className="mt-1 border p-2 w-full rounded-md bg-gray-50" aria-label="Selecionar cliente">
+              <option value="">Selecione o Cliente</option>
+              {clientesOrdenados.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="data" className="block text-sm font-medium text-gray-700">Data</label>
+            <input id="data" type="date" name="data" className="mt-1 border p-2 w-full rounded-md bg-gray-50" value={formAgenda.data} onChange={handleAgendaChange} aria-label="Data do agendamento" />
+          </div>
+          <div>
+            <label htmlFor="horario" className="block text-sm font-medium text-gray-700">Hora</label>
+            <input id="horario" type="time" name="horario" className="mt-1 border p-2 w-full rounded-md bg-gray-50" value={formAgenda.horario} onChange={handleAgendaChange} aria-label="Horário do agendamento" />
+          </div>
+          <div className="col-span-2 lg:col-span-1">
+            <label htmlFor="servico" className="block text-sm font-medium text-gray-700">Serviço</label>
+            <input id="servico" name="servico" className="mt-1 border p-2 w-full rounded-md bg-gray-50" placeholder="Serviço" value={formAgenda.servico} onChange={handleAgendaChange} aria-label="Serviço" />
+          </div>
+          <div className="col-span-2 lg:col-span-1">
+            <label htmlFor="preco" className="block text-sm font-medium text-gray-700">Preço</label>
+            <input id="preco" type="number" name="preco" className="mt-1 border p-2 w-full rounded-md bg-gray-50" placeholder="Preço" value={formAgenda.preco} onChange={handleAgendaChange} aria-label="Preço" min="0" step="0.01" />
+          </div>
+          <button className={`px-4 py-2 w-full rounded-md font-semibold transition-colors col-span-2 lg:col-span-6 ${editarAgendaId ? 'bg-green-500 hover:bg-green-600 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white'}`} onClick={adicionarOuEditarAgenda}>
+            {editarAgendaId ? 'Salvar Edição' : 'Agendar'}
           </button>
         </div>
         <input className="border p-2 mb-4 w-full rounded-md" placeholder="Filtrar agendamentos por nome do cliente..." value={filtroCliente} onChange={e => setFiltroCliente(e.target.value)} aria-label="Filtrar agendamentos" />
@@ -50,10 +66,8 @@ export default function PaginaAgenda() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {agendaFiltrada.map(a => {
             const cliente = clientes.find(c => c.id === a.clienteId);
-            // NOVO: Verifica se o agendamento é para hoje para o alerta visual
             const isHoje = a.data === hoje;
             return (
-              // LÓGICA DO ALERTA: Adiciona uma borda amarela se o agendamento for hoje
               <div key={a.id} className={`bg-white p-4 rounded-lg shadow flex justify-between items-start ${isHoje ? 'border-2 border-yellow-400' : ''}`}>
                 <div>
                   <div className="font-bold text-gray-800 flex items-center gap-2">
@@ -62,10 +76,13 @@ export default function PaginaAgenda() {
                       <a href={`https://wa.me/55${cliente.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" aria-label="Conversar no WhatsApp" className="text-green-500 hover:text-green-700"><FaWhatsapp size={18} /></a>
                     )}
                   </div>
-                  {/* EXIBE A DATA E O HORÁRIO */}
+                  
+                  {/* CORRIGIDO: Mostra a data e o horário corretamente */}
                   <div className="text-sm text-gray-600 font-semibold">
-                    {new Date(a.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' })} às {a.horario}
+                    {new Date(a.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+                    {a.horario && ` às ${a.horario}`}
                   </div>
+
                   <div className="text-gray-700">{a.servico}</div>
                   <div className="font-semibold text-green-600 mt-2">R$ {a.preco}</div>
                 </div>
