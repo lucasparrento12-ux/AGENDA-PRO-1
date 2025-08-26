@@ -41,6 +41,12 @@ export default function Agenda() {
     setClienteWhatsapp('');
   };
 
+  const cancelarEdicaoCliente = () => {
+    setClienteNome('');
+    setClienteWhatsapp('');
+    setEditarClienteId(null);
+  };
+
   const removerCliente = (id) => {
     if (window.confirm('Deseja remover este cliente? Seus agendamentos também serão removidos.')) {
       setClientes(clientes.filter(c => c.id !== id));
@@ -63,17 +69,34 @@ export default function Agenda() {
   const adicionarOuEditarAgenda = () => {
     const { data, horario, servico, preco, clienteId } = formAgenda;
     if (!data || !horario || !servico.trim() || !preco || !clienteId) return showMsg('Preencha todos os campos, incluindo data e horário.');
-    
+
+    // Validação de preço
+    const precoNum = parseFloat(preco);
+    if (isNaN(precoNum) || precoNum < 0) {
+      return showMsg('Preço inválido');
+    }
+
+    // Validação de data/hora no passado
+    const agendamentoDateTime = new Date(`${data}T${horario}`);
+    if (agendamentoDateTime < new Date()) {
+      return showMsg('Não é possível agendar no passado');
+    }
+
     if (editarAgendaId) {
-      setAgenda(agenda.map(a => a.id === editarAgendaId ? { ...a, data, horario, servico: servico.trim(), preco: parseFloat(preco).toFixed(2), clienteId: Number(clienteId) } : a));
+      setAgenda(agenda.map(a => a.id === editarAgendaId ? { ...a, data, horario, servico: servico.trim(), preco: precoNum.toFixed(2), clienteId: Number(clienteId) } : a));
       setEditarAgendaId(null);
       showMsg('Agendamento editado!');
     } else {
-      const novoAgendamento = { id: Date.now(), data, horario, servico: servico.trim(), preco: parseFloat(preco).toFixed(2), clienteId: Number(clienteId) };
+      const novoAgendamento = { id: Date.now(), data, horario, servico: servico.trim(), preco: precoNum.toFixed(2), clienteId: Number(clienteId) };
       setAgenda([...agenda, novoAgendamento]);
       showMsg('Agendamento criado!');
     }
     setFormAgenda({ data: '', horario: '', servico: '', preco: '', clienteId: '' });
+  };
+
+  const cancelarEdicaoAgenda = () => {
+    setFormAgenda({ data: '', horario: '', servico: '', preco: '', clienteId: '' });
+    setEditarAgendaId(null);
   };
 
   const editarAgenda = (agendamento) => {
@@ -104,7 +127,7 @@ export default function Agenda() {
         return cliente ? cliente.nome.toLowerCase().includes(filtroCliente.toLowerCase()) : false;
     })
     .sort((a, b) => `${a.data} ${a.horario || ''}`.localeCompare(`${b.data} ${b.horario || ''}`));
-  
+
   const hoje = new Date().toISOString().slice(0, 10);
 
   return (
@@ -123,6 +146,7 @@ export default function Agenda() {
       <main className="flex-1 p-4 md:p-8">
         {mensagem && <div className="mb-4 p-3 bg-blue-100 border border-blue-300 text-blue-800 rounded">{mensagem}</div>}
         
+        {/* ================= CLIENTES ================= */}
         <section className="mb-10">
           <h2 className="text-2xl font-semibold mb-4 text-gray-700">Clientes</h2>
           <div className="flex flex-col md:flex-row mb-4 gap-2">
@@ -131,6 +155,11 @@ export default function Agenda() {
             <button className={`px-6 py-2 rounded-md font-semibold transition-colors ${editarClienteId ? 'bg-green-500 hover:bg-green-600 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white'}`} onClick={adicionarOuEditarCliente}>
               {editarClienteId ? 'Salvar' : 'Adicionar'}
             </button>
+            {editarClienteId && (
+              <button className="px-6 py-2 rounded-md font-semibold bg-gray-400 hover:bg-gray-500 text-white" onClick={cancelarEdicaoCliente}>
+                Cancelar
+              </button>
+            )}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {clientesOrdenados.map(c => (
@@ -149,10 +178,9 @@ export default function Agenda() {
           </div>
         </section>
 
+        {/* ================= AGENDA ================= */}
         <section className="mb-10">
           <h2 className="text-2xl font-semibold mb-4 text-gray-700">Agenda</h2>
-
-          {/* ===== O FORMULÁRIO COMPLETO E CORRETO ESTÁ AQUI ===== */}
           <div className={`bg-white p-4 rounded-lg shadow mb-4 grid grid-cols-2 lg:grid-cols-6 gap-3 items-end ${editarAgendaId ? 'border-green-500 border' : ''}`}>
             <div className="col-span-2 lg:col-span-2">
               <label htmlFor="clienteId" className="block text-sm font-medium text-gray-700">Cliente</label>
@@ -177,19 +205,30 @@ export default function Agenda() {
               <label htmlFor="preco" className="block text-sm font-medium text-gray-700">Preço</label>
               <input id="preco" type="number" name="preco" className="mt-1 border p-2 w-full rounded-md bg-gray-50" placeholder="Preço" value={formAgenda.preco} onChange={handleAgendaChange} min="0" step="0.01" />
             </div>
-            <button className={`px-4 py-2 w-full rounded-md font-semibold transition-colors col-span-2 lg:col-span-6 ${editarAgendaId ? 'bg-green-500 hover:bg-green-600 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white'}`} onClick={adicionarOuEditarAgenda}>
-              {editarAgendaId ? 'Salvar Edição' : 'Agendar'}
-            </button>
+            <div className="col-span-2 lg:col-span-6 flex gap-2">
+              <button className={`px-4 py-2 flex-1 rounded-md font-semibold transition-colors ${editarAgendaId ? 'bg-green-500 hover:bg-green-600 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white'}`} onClick={adicionarOuEditarAgenda}>
+                {editarAgendaId ? 'Salvar Edição' : 'Agendar'}
+              </button>
+              {editarAgendaId && (
+                <button className="px-4 py-2 flex-1 rounded-md font-semibold bg-gray-400 hover:bg-gray-500 text-white" onClick={cancelarEdicaoAgenda}>
+                  Cancelar
+                </button>
+              )}
+            </div>
           </div>
-          {/* ===== FIM DO FORMULÁRIO ===== */}
           
           <input className="border p-2 mb-4 w-full rounded-md" placeholder="Filtrar agendamentos..." value={filtroCliente} onChange={e => setFiltroCliente(e.target.value)} />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {agendaFiltrada.map(a => {
               const cliente = clientes.find(c => c.id === a.clienteId);
-              const isHoje = a.data === hoje;
+              const dataHora = new Date(`${a.data}T${a.horario}`);
+              let cardClass = "bg-white p-4 rounded-lg shadow";
+              if (a.data === hoje) cardClass += " border-2 border-yellow-400";
+              else if (dataHora > new Date()) cardClass += " border-2 border-blue-400";
+              else if (dataHora < new Date()) cardClass += " border-2 border-gray-400 opacity-70";
+
               return (
-                <div key={a.id} className={`bg-white p-4 rounded-lg shadow ${isHoje ? 'border-2 border-yellow-400' : ''}`}>
+                <div key={a.id} className={cardClass}>
                   <div className="flex justify-between items-start">
                     <div>
                       <div className="font-bold text-gray-800 flex items-center gap-2">
@@ -214,10 +253,16 @@ export default function Agenda() {
           </div>
         </section>
 
+        {/* ================= FINANCEIRO ================= */}
         <section>
           <h2 className="text-2xl font-semibold mb-4 text-gray-700">Resumo Financeiro</h2>
-          <div className="bg-white p-6 rounded-lg shadow text-2xl font-bold text-blue-600 flex items-center">
-            <FiDollarSign className="mr-2" /> <span>Total a Receber: R$ {totalFinanceiro}</span>
+          <div className="bg-white p-6 rounded-lg shadow text-xl font-bold text-blue-600 flex flex-col gap-2">
+            <div className="flex items-center"><FiDollarSign className="mr-2" /> <span>Total a Receber: R$ {totalFinanceiro}</span></div>
+            {agendaFiltrada.length > 0 && (
+              <div className="text-sm text-gray-600">
+                Próximo horário: {new Date(`${agendaFiltrada[0].data}T${agendaFiltrada[0].horario}`).toLocaleString('pt-BR')}
+              </div>
+            )}
           </div>
         </section>
       </main>
