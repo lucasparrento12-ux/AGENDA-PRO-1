@@ -18,7 +18,7 @@ export default function PaginaAgenda() {
         const cliente = clientes.find(c => c.id === a.clienteId);
         return cliente ? cliente.nome.toLowerCase().includes(filtroCliente.toLowerCase()) : false;
     })
-    .sort((a, b) => `${a.data} ${a.horario}`.localeCompare(`${b.data} ${b.horario}`));
+    .sort((a, b) => `${a.data} ${a.horario || ''}`.localeCompare(`${b.data} ${b.horario || ''}`));
 
   const hoje = new Date().toISOString().slice(0, 10);
 
