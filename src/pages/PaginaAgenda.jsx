@@ -39,7 +39,6 @@ export default function PaginaAgenda() {
             </select>
           </div>
           <div>
-            {/* === CORRIGIDO AQUI === */}
             <label htmlFor="data" className="block text-sm font-medium text-gray-700">Data</label>
             <input id="data" type="date" name="data" className="mt-1 border p-2 w-full rounded-md bg-gray-50" value={formAgenda.data} onChange={handleAgendaChange} aria-label="Data do agendamento" />
           </div>
@@ -77,12 +76,18 @@ export default function PaginaAgenda() {
                   
                   <div className="text-sm text-gray-600 font-semibold">
                     {new Date(a.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
-                    {/* Mostra o horário apenas se ele existir */}
                     {a.horario && ` às ${a.horario}`}
                   </div>
 
                   <div className="text-gray-700">{a.servico}</div>
                   <div className="font-semibold text-green-600 mt-2">R$ {a.preco}</div>
+
+                  {/* ===== CÓDIGO DE DEBUG ADICIONADO ===== */}
+                  <pre className="text-xs bg-gray-200 p-1 mt-2 rounded overflow-auto">
+                    {JSON.stringify(a, null, 2)}
+                  </pre>
+                  {/* ===== FIM DO CÓDIGO DE DEBUG ===== */}
+
                 </div>
                 <div className="flex flex-col gap-2">
                   <button onClick={() => editarAgenda(a)} className="text-blue-500 hover:text-blue-700 p-1" aria-label="Editar agendamento"><FiEdit size={18} /></button>
