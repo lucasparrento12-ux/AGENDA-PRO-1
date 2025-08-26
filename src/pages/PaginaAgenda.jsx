@@ -12,8 +12,6 @@ export default function PaginaAgenda() {
   
   const totalFinanceiro = agenda.reduce((acc, a) => acc + parseFloat(a.preco), 0).toFixed(2);
   const clientesOrdenados = [...clientes].sort((a, b) => a.nome.localeCompare(b.nome));
-  
-  // CORRIGIDO: Ordenação por data e depois por horário
   const agendaFiltrada = agenda
     .filter(a => {
         if (!filtroCliente) return true;
@@ -32,7 +30,6 @@ export default function PaginaAgenda() {
 
       <section className="mb-10">
         <h2 className="text-2xl font-semibold mb-4 text-gray-700">Agenda</h2>
-        {/* CORRIGIDO: O layout do formulário foi ajustado para telas menores */}
         <div className={`bg-white p-4 rounded-lg shadow mb-4 grid grid-cols-2 lg:grid-cols-6 gap-3 items-end ${editarAgendaId ? 'border-green-500 border' : ''}`}>
           <div className="col-span-2 lg:col-span-2">
             <label htmlFor="clienteId" className="block text-sm font-medium text-gray-700">Cliente</label>
@@ -42,6 +39,7 @@ export default function PaginaAgenda() {
             </select>
           </div>
           <div>
+            {/* === CORRIGIDO AQUI === */}
             <label htmlFor="data" className="block text-sm font-medium text-gray-700">Data</label>
             <input id="data" type="date" name="data" className="mt-1 border p-2 w-full rounded-md bg-gray-50" value={formAgenda.data} onChange={handleAgendaChange} aria-label="Data do agendamento" />
           </div>
@@ -77,9 +75,9 @@ export default function PaginaAgenda() {
                     )}
                   </div>
                   
-                  {/* CORRIGIDO: Mostra a data e o horário corretamente */}
                   <div className="text-sm text-gray-600 font-semibold">
                     {new Date(a.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+                    {/* Mostra o horário apenas se ele existir */}
                     {a.horario && ` às ${a.horario}`}
                   </div>
 
